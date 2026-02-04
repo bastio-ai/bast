@@ -1,0 +1,9 @@
+name: grep_code
+description: Search for a pattern in the codebase, showing matches with context. Automatically excludes common directories like node_modules, .git, vendor, dist, build, __pycache__, .venv, etc.
+command: grep -r --include="*" -n -C 2 "$PATTERN" . --exclude-dir={node_modules,.git,vendor,dist,build,__pycache__,.venv,.idea,.vscode,target,coverage} 2>/dev/null | head -100
+parameters:
+  - name: pattern
+    type: string
+    description: The pattern to search for (supports regex)
+    required: true
+timeout: 60

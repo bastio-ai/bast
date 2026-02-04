@@ -1,0 +1,13 @@
+name: echo_test
+description: A simple test tool that echoes back its input. Use this to verify the agent and plugin system is working correctly.
+command: |
+  echo "=== Echo Test Plugin ==="
+  echo "Message: $MESSAGE"
+  echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
+  echo "=== Test Complete ==="
+parameters:
+  - name: message
+    type: string
+    description: The message to echo back
+    required: true
+timeout: 5

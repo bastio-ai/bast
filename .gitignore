@@ -1,0 +1,32 @@
+# Binaries and Build
+bast
+dist/
+bin/
+
+# Go Standard
+*.exe
+*.test
+*.out
+coverage.txt
+profile.out
+go.work
+go.work.sum
+
+# System & IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Security
+.env
+*.pem
+*.key
+
+# Generated Content
+.firecrawl/
+
+# Product Plan
+bast-product-plan.md
+
+# Ignore .claude directory
+.claude/

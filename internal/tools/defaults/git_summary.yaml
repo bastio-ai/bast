@@ -1,0 +1,8 @@
+name: git_summary
+description: Get a quick overview of the git repository state including branch, status, recent commits, and uncommitted changes.
+command: |
+  echo "=== Branch ===" && git branch --show-current && \
+  echo "\n=== Status ===" && git status -s && \
+  echo "\n=== Recent Commits ===" && git log --oneline -5 && \
+  echo "\n=== Uncommitted Changes ===" && git diff --stat
+timeout: 30
