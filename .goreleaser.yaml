@@ -31,25 +31,6 @@ checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
   algorithm: sha256
 
-homebrew_casks:
-  - name: bast
-    repository:
-      owner: bastio-ai
-      name: homebrew-tap
-    commit_author:
-      name: "Bastio AI"
-      email: "dev@bastio.ai"
-    homepage: "https://github.com/bastio-ai/bast"
-    description: "AI-powered shell command generation from natural language"
-    license: "MIT"
-    directory: Casks
-    binaries:
-      - bast
-    caveats: |
-      Add shell integration to your config:
-        eval "$(bast hook zsh)"  # for zsh
-        eval "$(bast hook bash)" # for bash
-
 release:
   github:
     owner: bastio-ai

@@ -21,10 +21,6 @@
 ## Quick Install
 
 ```bash
-# Homebrew (macOS/Linux)
-brew install bastio-ai/tap/bast
-
-# Or via curl
 curl -fsSL https://raw.githubusercontent.com/bastio-ai/bast/main/scripts/install.sh | sh
 ```
 
@@ -42,7 +38,7 @@ curl -fsSL https://raw.githubusercontent.com/bastio-ai/bast/main/scripts/install
 
 ```bash
 # Install
-brew install bastio-ai/tap/bast
+curl -fsSL https://raw.githubusercontent.com/bastio-ai/bast/main/scripts/install.sh | sh
 
 # Run the setup wizard
 bast init
@@ -399,8 +395,7 @@ go test ./...
 This project uses [GoReleaser](https://goreleaser.com/) for automated multi-platform builds.
 
 ### Prerequisites
-- GoReleaser installed (`brew install goreleaser`)
-- `bastio-ai/homebrew-tap` repository created on GitHub with a `Formula/` directory
+- [GoReleaser](https://goreleaser.com/install/) installed
 
 ### Creating a Release
 
@@ -413,7 +408,6 @@ This project uses [GoReleaser](https://goreleaser.com/) for automated multi-plat
 2. GitHub Actions automatically:
    - Builds binaries for darwin/linux (amd64/arm64)
    - Creates GitHub release with artifacts and checksums
-   - Pushes Homebrew formula to `bastio-ai/homebrew-tap`
 
 ### Local Testing
 ```bash
@@ -428,7 +422,6 @@ goreleaser release --snapshot --clean
 Release configuration is in `.goreleaser.yaml`. Key settings:
 - Builds for `darwin` and `linux` on `amd64` and `arm64`
 - Creates `.tar.gz` archives with SHA256 checksums
-- Auto-updates Homebrew formula in `bastio-ai/homebrew-tap`
 
 ---
 
