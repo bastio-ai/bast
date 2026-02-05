@@ -127,9 +127,13 @@ func generateDeviceID() string {
 	return hex.EncodeToString(hash[:8]) // Use first 8 bytes (16 hex chars)
 }
 
+// spinnerFrames contains the braille characters used for the animated spinner
+var spinnerFrames = []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
+
 // PollForToken polls the token endpoint until the user completes authorization
 // or the device code expires. Returns the token response or an error.
-func (c *DeviceFlowClient) PollForToken(ctx context.Context, deviceCode string, interval int) (*TokenResponse, error) {
+// If statusWriter is non-nil, an animated spinner is displayed during polling.
+func (c *DeviceFlowClient) PollForToken(ctx context.Context, deviceCode string, interval int, statusWriter io.Writer) (*TokenResponse, error) {
 	// Minimum interval is 5 seconds per RFC 8628
 	if interval < 5 {
 		interval = 5
@@ -138,11 +142,25 @@ func (c *DeviceFlowClient) PollForToken(ctx context.Context, deviceCode string, 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
 
+	frameIdx := 0
+	if statusWriter != nil {
+		fmt.Fprintf(statusWriter, "Waiting for authorization... %s", spinnerFrames[frameIdx])
+		frameIdx++
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
+			if statusWriter != nil {
+				fmt.Fprintf(statusWriter, "\r\033[K") // clear spinner line
+			}
 			return nil, ctx.Err()
 		case <-ticker.C:
+			if statusWriter != nil {
+				fmt.Fprintf(statusWriter, "\rWaiting for authorization... %s", spinnerFrames[frameIdx%len(spinnerFrames)])
+				frameIdx++
+			}
+
 			tokenResp, err := c.requestToken(ctx, deviceCode)
 			if err != nil {
 				// Check if it's a polling error (authorization_pending, slow_down)
@@ -155,7 +173,13 @@ func (c *DeviceFlowClient) PollForToken(ctx context.Context, deviceCode string, 
 						continue
 					}
 				}
+				if statusWriter != nil {
+					fmt.Fprintf(statusWriter, "\r\033[K") // clear spinner line
+				}
 				return nil, err
+			}
+			if statusWriter != nil {
+				fmt.Fprintf(statusWriter, "\r\033[K") // clear spinner line
 			}
 			return tokenResp, nil
 		}

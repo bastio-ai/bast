@@ -95,7 +95,6 @@ func runLogin(cmd *cobra.Command, args []string) error {
 	// Display the user code
 	fmt.Println("┌──────────────────────────────────────┐")
 	fmt.Printf("│  Enter this code: %-18s │\n", authResp.UserCode)
-	fmt.Println("│  Waiting for authorization... ⣾      │")
 	fmt.Println("└──────────────────────────────────────┘")
 	fmt.Println()
 

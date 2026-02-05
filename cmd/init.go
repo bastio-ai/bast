@@ -167,7 +167,7 @@ func runBastioSetup(reader *bufio.Reader, cfg *config.Config) error {
 	if hasAccount == "n" || hasAccount == "no" {
 		fmt.Println()
 		fmt.Println("Opening browser to create account...")
-		opened, fallback := auth.OpenBrowserWithFallback("https://bastio.com/signup?ref=bast")
+		opened, fallback := auth.OpenBrowserWithFallback(auth.GetBastioWebURL() + "/sign-up")
 		if !opened {
 			fmt.Println(fallback)
 		}
@@ -201,7 +201,6 @@ func runBastioSetup(reader *bufio.Reader, cfg *config.Config) error {
 	// Display the user code
 	fmt.Println("┌──────────────────────────────────────┐")
 	fmt.Printf("│  Enter this code: %-18s │\n", authResp.UserCode)
-	fmt.Println("│  Waiting for authorization... ⣾      │")
 	fmt.Println("└──────────────────────────────────────┘")
 	fmt.Println()
 
@@ -218,7 +217,6 @@ func runBastioSetup(reader *bufio.Reader, cfg *config.Config) error {
 }
 
 func runProxySetup(reader *bufio.Reader, cfg *config.Config, creds *auth.Credentials) error {
-	// Get Anthropic API key
 	fmt.Println("Enter your Anthropic API key:")
 	fmt.Println("(Stored securely with Bastio, never saved locally)")
 	fmt.Println("(Get one at https://console.anthropic.com/)")
@@ -232,25 +230,22 @@ func runProxySetup(reader *bufio.Reader, cfg *config.Config, creds *auth.Credent
 	}
 
 	fmt.Println()
-	fmt.Print("Creating secure proxy... ")
+	fmt.Print("Storing provider key... ")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	authenticator := auth.NewAuthenticator()
-	proxyResp, err := authenticator.CreateProxy(ctx, creds.AccessToken, apiKey, cfg.Model)
+
+	// Store the Anthropic key on the existing CLI proxy
+	// The proxy was already created during device auth (VerifyDevice)
+	err := authenticator.StoreProviderKey(ctx, creds.ProxyAPIKey, "anthropic", apiKey)
 	if err != nil {
 		fmt.Println("✗")
-		return fmt.Errorf("failed to create proxy: %w", err)
+		return fmt.Errorf("failed to store provider key: %w", err)
 	}
 
-	// Update credentials with proxy info
-	if err := authenticator.UpdateProxyCredentials(ctx, proxyResp); err != nil {
-		fmt.Println("✗")
-		return fmt.Errorf("failed to save proxy credentials: %w", err)
-	}
-
-	cfg.Bastio.ProxyID = proxyResp.ProxyID
+	cfg.Bastio.ProxyID = creds.ProxyID
 
 	fmt.Println("✓")
 	fmt.Println()

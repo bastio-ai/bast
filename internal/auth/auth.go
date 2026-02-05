@@ -3,8 +3,6 @@ package auth
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -48,7 +46,7 @@ func (a *Authenticator) StartLogin(ctx context.Context) (*DeviceAuthorizationRes
 
 // CompleteLogin polls for the token and saves credentials
 func (a *Authenticator) CompleteLogin(ctx context.Context, deviceCode string, interval int, deviceID string) (*Credentials, error) {
-	tokenResp, err := a.deviceFlow.PollForToken(ctx, deviceCode, interval)
+	tokenResp, err := a.deviceFlow.PollForToken(ctx, deviceCode, interval, os.Stderr)
 	if err != nil {
 		return nil, err
 	}
@@ -76,90 +74,6 @@ func (a *Authenticator) Logout() error {
 // GetCredentials loads credentials (API keys don't expire, no refresh needed)
 func (a *Authenticator) GetCredentials(ctx context.Context) (*Credentials, error) {
 	return LoadCredentials()
-}
-
-// ProxyCreateRequest is the request to create a CLI proxy
-type ProxyCreateRequest struct {
-	Name           string `json:"name"`
-	MachineID      string `json:"machine_id"`
-	Provider       string `json:"provider"`
-	ProviderAPIKey string `json:"provider_api_key"`
-	DefaultModel   string `json:"default_model"`
-}
-
-// ProxyCreateResponse is the response from creating a CLI proxy
-type ProxyCreateResponse struct {
-	ProxyID     string `json:"proxy_id"`
-	ProxyAPIKey string `json:"proxy_api_key"`
-	BaseURL     string `json:"base_url"`
-}
-
-// CreateProxy creates a new CLI proxy in Bastio
-func (a *Authenticator) CreateProxy(ctx context.Context, accessToken, providerAPIKey, model string) (*ProxyCreateResponse, error) {
-	url := a.baseURL + "/v1/cli/proxies"
-
-	machineID := generateMachineID()
-	hostname, _ := os.Hostname()
-	proxyName := fmt.Sprintf("bast-cli-%s", hostname)
-
-	reqBody := ProxyCreateRequest{
-		Name:           proxyName,
-		MachineID:      machineID,
-		Provider:       "anthropic",
-		ProviderAPIKey: providerAPIKey,
-		DefaultModel:   model,
-	}
-
-	jsonBody, err := json.Marshal(reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-
-	client := &http.Client{Timeout: DefaultHTTPTimeout}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create proxy: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("proxy creation failed (status %d): %s", resp.StatusCode, string(body))
-	}
-
-	var proxyResp ProxyCreateResponse
-	if err := json.Unmarshal(body, &proxyResp); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	return &proxyResp, nil
-}
-
-// UpdateProxyCredentials updates the stored credentials with proxy information
-func (a *Authenticator) UpdateProxyCredentials(ctx context.Context, proxyResp *ProxyCreateResponse) error {
-	creds, err := LoadCredentials()
-	if err != nil {
-		return err
-	}
-	if creds == nil {
-		return fmt.Errorf("no credentials found")
-	}
-
-	creds.ProxyID = proxyResp.ProxyID
-	creds.ProxyAPIKey = proxyResp.ProxyAPIKey
-
-	return SaveCredentials(creds)
 }
 
 // AuthStatus represents the current authentication status
@@ -199,20 +113,6 @@ func (a *Authenticator) GetStatus(ctx context.Context) (*AuthStatus, error) {
 	status.ProxyID = creds.ProxyID
 
 	return status, nil
-}
-
-// generateMachineID generates a unique identifier for this machine
-func generateMachineID() string {
-	hostname, _ := os.Hostname()
-	username := os.Getenv("USER")
-	if username == "" {
-		username = os.Getenv("USERNAME") // Windows
-	}
-
-	// Create a hash of hostname + username
-	data := hostname + ":" + username
-	hash := sha256.Sum256([]byte(data))
-	return hex.EncodeToString(hash[:8]) // Use first 8 bytes (16 hex chars)
 }
 
 // ProviderKeyRequest is the request to store a provider API key
