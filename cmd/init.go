@@ -89,7 +89,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	fmt.Println("Select model:")
 	fmt.Println("1. claude-sonnet-4-5-20250929 (recommended)")
 	fmt.Println("2. claude-haiku-4-5-20251001 (faster, cheaper)")
-	fmt.Println("3. claude-opus-4-5-20251101 (most capable)")
+	fmt.Println("3. claude-opus-4-6 (most capable)")
 	fmt.Print("> ")
 	modelChoice, _ := reader.ReadString('\n')
 	modelChoice = strings.TrimSpace(modelChoice)
@@ -98,7 +98,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	case "2":
 		cfg.Model = "claude-haiku-4-5-20251001"
 	case "3":
-		cfg.Model = "claude-opus-4-5-20251101"
+		cfg.Model = "claude-opus-4-6"
 	default:
 		cfg.Model = "claude-sonnet-4-5-20250929"
 	}
