@@ -425,20 +425,6 @@ Release configuration is in `.goreleaser.yaml`. Key settings:
 
 ---
 
-## GitHub Repository Settings
-
-**Description** (for GitHub repo settings):
-```
-AI-powered terminal assistant. Describe tasks in plain English, get shell commands. Features intent classification, file context (@syntax), dangerous command detection, and optional enterprise security via Bastio.
-```
-
-**Topics/Tags** (add via GitHub repo settings):
-```
-cli, terminal, ai, shell, command-line, natural-language, anthropic, claude, go, golang, tui, bash, zsh, developer-tools, productivity
-```
-
----
-
 ## License
 
 MIT
